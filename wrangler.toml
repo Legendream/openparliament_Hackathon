@@ -7,7 +7,7 @@ pages_build_output_dir = "."
 [[d1_databases]]
 binding = "DB"
 database_name = "congressthon"
-database_id = "TODO_執行 wrangler d1 create 後填入"
+database_id = "0db1e611-8cd1-45ed-b655-4a67b7c8843d"
 
 # 機密（ADMIN_TOKEN / TURNSTILE_SECRET / IP_HASH_SALT）不寫在這裡，
 # 用 `wrangler pages secret put <NAME>` 設定，見 DEPLOY.md。
