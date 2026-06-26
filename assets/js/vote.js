@@ -117,15 +117,24 @@
     e.preventDefault();
     var text = (newEl.value || "").trim();
     if (text.length < 2) { flash("主題至少 2 個字"); return; }
-    var tkEl = document.querySelector('[name="cf-turnstile-response"]');
-    flash("送出中…");
-    fetch(API + "/topics", {
-      method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text: text, voter: voter, turnstileToken: tkEl ? tkEl.value : "" }),
-    }).then(function (r) { return r.json(); }).then(function (d) {
-      if (d && d.ok) { flash(d.message || "已送出，待審核後會出現"); newEl.value = ""; if (window.turnstile) window.turnstile.reset(); }
-      else { flash((d && d.error) || "送出失敗"); }
-    }).catch(function () { flash("連線失敗"); });
+    flash("驗證中…");
+    function send(token) {
+      fetch(API + "/topics", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: text, voter: voter, turnstileToken: token }),
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.ok) { flash(d.message || "已送出，待審核後會出現"); newEl.value = ""; if (window.turnstile) window.turnstile.reset("#vote-turnstile"); }
+        else { flash((d && d.error) || "送出失敗"); if (window.turnstile) window.turnstile.reset("#vote-turnstile"); }
+      }).catch(function () { flash("連線失敗"); });
+    }
+    if (window.turnstile) {
+      window.turnstile.execute("#vote-turnstile", {
+        callback: function (token) { send(token); },
+        "error-callback": function () { flash("人機驗證失敗，請重試"); },
+      });
+    } else {
+      send("");
+    }
   });
 
   load();
