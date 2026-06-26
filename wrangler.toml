@@ -1,0 +1,13 @@
+# Cloudflare Pages 設定（靜態站 + functions/ 的投票 API + D1 資料庫）
+name = "g0v-congressthon"
+compatibility_date = "2024-09-01"
+pages_build_output_dir = "."
+
+# D1 資料庫綁定。database_id 要在你建立 D1 後填入（見 voting/DEPLOY.md）
+[[d1_databases]]
+binding = "DB"
+database_name = "congressthon"
+database_id = "TODO_執行 wrangler d1 create 後填入"
+
+# 機密（ADMIN_TOKEN / TURNSTILE_SECRET / IP_HASH_SALT）不寫在這裡，
+# 用 `wrangler pages secret put <NAME>` 設定，見 DEPLOY.md。

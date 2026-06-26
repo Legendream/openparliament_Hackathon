@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國會松投票 · 主題審核</title>
+  <style>
+    body{font-family:"Noto Sans TC",system-ui,sans-serif; max-width:680px; margin:40px auto; padding:0 20px; color:#111110; line-height:1.7;}
+    h1{font-size:22px;}
+    .row{display:flex; gap:8px; margin:16px 0;}
+    input{flex:1; height:40px; border:2px solid #111110; padding:0 12px; font-size:15px;}
+    button{cursor:pointer; border:2px solid #111110; background:#fff; font-size:14px; padding:8px 14px;}
+    button.go{background:#00a37a; color:#fff; border-color:#00a37a;}
+    button.ok{border-color:#00a37a; color:#00795a;}
+    button.no{border-color:#a32d2d; color:#a32d2d;}
+    .item{border:1.5px solid #dcdcd2; padding:12px 14px; margin:10px 0; display:flex; justify-content:space-between; align-items:center; gap:10px;}
+    .item .actions{display:flex; gap:8px; flex-shrink:0;}
+    .muted{color:#7a7a72; font-size:14px;}
+    .hint{color:#7a7a72; font-size:13px;}
+  </style>
+</head>
+<body>
+  <h1>主題審核</h1>
+  <p class="hint">貼上你的 ADMIN_TOKEN，檢視待審新主題並通過 / 退回。token 只存在這個分頁、不會上傳到別處。</p>
+  <div class="row">
+    <input id="token" type="password" placeholder="ADMIN_TOKEN" autocomplete="off">
+    <button class="go" id="load">載入待審</button>
+  </div>
+  <div id="status" class="muted"></div>
+  <div id="list"></div>
+
+  <script>
+    var API = "/api/moderate";
+    var tokenEl = document.getElementById("token");
+    var listEl = document.getElementById("list");
+    var statusEl = document.getElementById("status");
+
+    function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+    function token(){return tokenEl.value.trim();}
+
+    function load(){
+      if(!token()){statusEl.textContent="請先輸入 token";return;}
+      statusEl.textContent="載入中…";
+      fetch(API+"?token="+encodeURIComponent(token()))
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(d.error){statusEl.textContent=d.error;listEl.innerHTML="";return;}
+          statusEl.textContent="待審 "+d.pending.length+" 筆";
+          listEl.innerHTML = d.pending.length ? d.pending.map(function(t){
+            return '<div class="item" data-id="'+t.id+'"><span>'+esc(t.text)+'</span>'+
+              '<span class="actions"><button class="ok" data-act="approve">通過</button>'+
+              '<button class="no" data-act="reject">退回</button></span></div>';
+          }).join("") : '<p class="muted">目前沒有待審主題。</p>';
+        })
+        .catch(function(){statusEl.textContent="連線失敗（確認已部署且網址正確）";});
+    }
+
+    listEl.addEventListener("click", function(e){
+      var btn = e.target.closest("button[data-act]");
+      if(!btn) return;
+      var item = btn.closest(".item");
+      var id = item.getAttribute("data-id");
+      fetch(API,{method:"POST",headers:{"content-type":"application/json"},
+        body:JSON.stringify({token:token(),id:id,action:btn.getAttribute("data-act")})})
+        .then(function(r){return r.json();})
+        .then(function(d){ if(d.ok){ item.remove(); } else { statusEl.textContent=d.error||"操作失敗"; } })
+        .catch(function(){statusEl.textContent="連線失敗";});
+    });
+
+    document.getElementById("load").addEventListener("click", load);
+  </script>
+</body>
+</html>

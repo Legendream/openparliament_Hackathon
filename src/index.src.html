@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>g0v 國會松 — 一起讓國會更好懂</title>
+  <meta name="description" content="g0v 國會松：用開放資料與科技工具，一起讀懂國會。歷次活動回饋、參與者輪廓、大家想聽的主題，以及下一場活動報名。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    :root{
+      --ink:#111110; --paper:#ffffff; --paper-alt:#f3f3ec;
+      --line:#111110; --hair:#dcdcd2;
+      --accent:#00a37a; --accent-dark:#00795a; --accent-soft:#d9f4eb;
+      --pop:#ffd23f; --mute:#7a7a72;
+      --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      --sans:"Noto Sans TC", system-ui, -apple-system, sans-serif;
+      --shadow:4px 4px 0 var(--ink);
+      --max:1100px;
+    }
+    *{box-sizing:border-box;}
+    html{scroll-behavior:smooth; scroll-padding-top:76px;}
+    body{margin:0; font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.75; -webkit-font-smoothing:antialiased;}
+    h1,h2,h3{font-weight:900; line-height:1.25; margin:0; letter-spacing:-.01em;}
+    a{color:inherit;}
+    .wrap{max-width:var(--max); margin:0 auto; padding:0 24px;}
+    .eyebrow{font-family:var(--mono); font-size:13px; font-weight:500; color:var(--accent-dark); letter-spacing:.06em; margin:0 0 14px;}
+    .eyebrow::before{content:"// "; color:var(--mute);}
+    .mono{font-family:var(--mono);}
+
+    /* top accent bar */
+    .topbar{height:6px; background:var(--ink);}
+    .topbar__seg{height:100%; width:34%; background:var(--accent);}
+
+    /* nav */
+    .nav{position:sticky; top:0; z-index:50; background:var(--paper); border-bottom:2px solid var(--ink);}
+    .nav__inner{max-width:var(--max); margin:0 auto; padding:12px 24px; display:flex; align-items:center; gap:20px;}
+    .nav__brand{font-weight:900; font-size:20px; text-decoration:none; white-space:nowrap;}
+    .nav__zero{display:inline-block; background:var(--accent); color:#fff; padding:0 6px; margin:0 1px; transform:skewX(-6deg);}
+    .nav__links{display:flex; gap:22px; margin-left:auto; font-family:var(--mono); font-size:14px;}
+    .nav__links a{text-decoration:none; color:var(--ink); padding-bottom:2px; border-bottom:2px solid transparent;}
+    .nav__links a:hover{border-color:var(--accent);}
+    .nav__cta{white-space:nowrap;}
+
+    /* buttons */
+    .btn{display:inline-block; text-decoration:none; cursor:pointer; font-family:var(--mono); font-weight:500;
+      padding:11px 22px; font-size:15px; border:2px solid var(--ink); background:var(--paper); color:var(--ink);
+      box-shadow:var(--shadow); transition:transform .08s ease, box-shadow .08s ease;}
+    .btn:hover{transform:translate(-1px,-1px); box-shadow:5px 5px 0 var(--ink);}
+    .btn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink);}
+    .btn--primary{background:var(--accent); color:#fff;}
+    .nav__cta.btn{padding:8px 16px; box-shadow:3px 3px 0 var(--ink); font-size:13px;}
+
+    /* hero */
+    .hero{position:relative; padding:90px 0 78px; border-bottom:2px solid var(--ink);
+      background-color:var(--paper);
+      background-image:radial-gradient(var(--hair) 1.4px, transparent 1.4px);
+      background-size:22px 22px;}
+    .hero__inner{max-width:760px; position:relative;}
+    .hero__title{font-size:clamp(32px,5.4vw,54px);}
+    .hero__title .hl{background:var(--pop); padding:0 8px; box-decoration-break:clone; -webkit-box-decoration-break:clone;}
+    .hero__sub{font-size:18px; color:#3a3a36; margin:20px 0 30px;}
+    .hero__actions{display:flex; gap:14px; flex-wrap:wrap;}
+    .hero__note{font-family:var(--mono); font-size:13px; color:var(--mute); margin-top:20px;}
+
+    /* sections */
+    .section{padding:78px 0;}
+    .section--alt{background:var(--paper-alt); border-top:2px solid var(--ink); border-bottom:2px solid var(--ink);}
+    .section__title{font-size:clamp(25px,3.6vw,34px);}
+    .section__lead{color:#3a3a36; max-width:740px; margin:14px 0 38px;}
+    .section__lead strong{background:var(--accent-soft); color:var(--accent-dark); padding:0 4px;}
+
+    /* stats */
+    .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:18px;}
+    .stat{background:var(--paper); border:2px solid var(--ink); box-shadow:var(--shadow); padding:22px;}
+    .stat__num{font-family:var(--mono); font-size:40px; font-weight:700; color:var(--accent-dark); line-height:1;}
+    .stat__label{color:#3a3a36; font-size:14px; margin-top:8px;}
+
+    /* cards */
+    .cards{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px;}
+    .card{background:var(--paper); border:2px solid var(--ink); box-shadow:var(--shadow); padding:22px;}
+    .card--wide{grid-column:1 / -1;}
+    .card__title{font-size:17px;}
+    .card__hint{color:var(--mute); font-family:var(--mono); font-size:13px; margin:6px 0 14px;}
+    .card__hint strong{color:var(--accent-dark);}
+    .chart-box{position:relative; height:300px;}
+    .chart-box--short{height:130px;}
+
+    /* priority */
+    .priority{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px;}
+    .priority li{background:var(--accent); color:#fff; border:2px solid var(--ink); padding:12px 14px; font-weight:500;
+      display:flex; justify-content:space-between; align-items:center; gap:10px;}
+    .priority .demand{font-family:var(--mono); font-size:13px; font-weight:400;}
+
+    /* events */
+    .events{display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:18px;}
+    .event{background:var(--paper); border:2px solid var(--ink); box-shadow:var(--shadow); padding:18px; display:flex; flex-direction:column; gap:10px;}
+    .event__date{font-family:var(--mono); font-size:13px; color:var(--mute);}
+    .event__term{display:inline-block; background:var(--ink); color:#fff; padding:1px 7px; margin-left:4px;}
+    .event__theme{font-size:16px; font-weight:700; flex:1;}
+    .event__nps{font-family:var(--mono); font-size:12px; color:var(--accent-dark);}
+    .event__links{display:flex; gap:14px; flex-wrap:wrap; border-top:1.5px solid var(--hair); padding-top:10px;}
+    .event__links a{color:var(--accent-dark); font-family:var(--mono); font-size:13px; text-decoration:none; font-weight:500;}
+    .event__links a:hover{text-decoration:underline;}
+    .event__links .muted{color:var(--mute); font-family:var(--mono); font-size:13px;}
+
+    /* footer */
+    .footer{background:var(--ink); color:#f2f2ec; padding:60px 0 40px;}
+    .footer__inner{display:flex; flex-direction:column; gap:28px;}
+    .footer__title{font-size:26px; color:#fff;}
+    .footer__title .nav__zero{transform:skewX(-6deg);}
+    .footer__sub{color:#bdbdb4; margin:8px 0 20px;}
+    .footer__links{display:flex; gap:24px; flex-wrap:wrap; font-family:var(--mono); font-size:14px;}
+    .footer__links a{color:#dcdcd4; text-decoration:none;}
+    .footer__links a:hover{color:var(--pop);}
+    .footer__fine{color:#8f8f86; font-family:var(--mono); font-size:12px; border-top:1px solid #333; padding-top:20px; margin:0;}
+
+    @media (max-width:720px){
+      .nav__links{display:none;}
+      .cards{grid-template-columns:1fr;}
+      .hero{padding:56px 0 48px;}
+      .section{padding:54px 0;}
+    }
+
+    /* 想聽什麼：互動投票 */
+    .vote{margin-top:8px; border:2px solid var(--ink); box-shadow:var(--shadow); background:var(--paper); padding:24px;}
+    .vote__head{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+    .vote__live{font-family:var(--mono); font-size:12px; background:var(--accent); color:#fff; padding:3px 10px;}
+    .vote__cta{font-family:var(--mono); font-size:13px; color:var(--accent-dark);}
+    .vote__status{font-family:var(--mono); font-size:13px; color:var(--mute); margin:10px 0 0;}
+    .vote__grouptitle{font-size:15px; margin:20px 0 10px; padding-bottom:6px; border-bottom:2px solid var(--ink);}
+    .vote__list{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px;}
+    .vote__item{display:flex; align-items:center; gap:10px; border:2px solid var(--hair); padding:10px 12px; background:var(--paper);
+      cursor:pointer; transition:transform .08s ease, box-shadow .08s ease, border-color .1s ease;}
+    .vote__item:hover{border-color:var(--ink); transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--ink);}
+    .vote__item.is-voted{border-color:var(--accent); background:var(--accent-soft);}
+    .vote__item.is-disabled{cursor:default; opacity:.7;}
+    .vote__item.is-disabled:hover{transform:none; box-shadow:none; border-color:var(--hair);}
+    .vote__btn{display:flex; align-items:center; gap:6px; border:2px solid var(--ink); background:var(--paper);
+      font-family:var(--mono); font-size:15px; font-weight:500; padding:6px 10px; line-height:1; pointer-events:none;}
+    .vote__item.is-voted .vote__btn{background:var(--accent); color:#fff; border-color:var(--accent);}
+    .vote__thumb{font-size:16px;}
+    .vote__text{font-size:15px; font-weight:500; flex:1;}
+    .vote__ref{font-family:var(--mono); font-size:11px; color:var(--mute); white-space:nowrap;}
+    .vote__form{margin-top:22px; border-top:2px dashed var(--hair); padding-top:18px;}
+    .vote__formlabel{display:block; font-size:14px; font-weight:500; margin-bottom:8px;}
+    .vote__formrow{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .vote__form input[type=text]{flex:1; min-width:220px; height:40px; border:2px solid var(--ink); padding:0 12px; font-family:var(--sans); font-size:15px;}
+    .vote__form .cf-turnstile{margin-top:12px;}
+    .vote__msg{font-family:var(--mono); font-size:13px; color:var(--accent-dark); margin:10px 0 0; min-height:1em;}
+    .vote__tools{font-family:var(--mono); font-size:12px; color:var(--mute); margin:18px 0 0;}
+  </style>
+</head>
+<body>
+  <div class="topbar"><div class="topbar__seg"></div></div>
+
+  <header class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#hero" class="nav__brand">g<span class="nav__zero">0</span>v 國會松</a>
+      <nav class="nav__links" aria-label="主導覽">
+        <a href="#about">關於</a>
+        <a href="#profile">參與者輪廓</a>
+        <a href="#wishes">想聽什麼</a>
+        <a href="#events">歷次活動</a>
+      </nav>
+      <a class="btn nav__cta" id="nav-newsletter" href="#" target="_blank" rel="noopener">訂閱電子報</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="hero">
+      <div class="wrap hero__inner">
+        <p class="eyebrow">下一場國會松</p>
+        <h1 class="hero__title">一起<span class="hl">讀懂國會</span>，<br>從一場松開始</h1>
+        <p class="hero__sub">日期與主題即將公布。先報名卡位，或訂閱電子報掌握最新場次。</p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" id="hero-register" href="#" target="_blank" rel="noopener">我要報名 →</a>
+          <a class="btn" id="hero-newsletter" href="#" target="_blank" rel="noopener">訂閱電子報</a>
+        </div>
+        <p class="hero__note">活動資訊與報名都在 g0v 國會松官方站台。</p>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="wrap">
+        <p class="eyebrow">about</p>
+        <h2 class="section__title">關於 g0v 國會松</h2>
+        <p class="section__lead">
+          國會松（Congress Hackathon）是 g0v 社群每月一次的聚會。我們用開放資料、AI 與各種科技工具，
+          一起把難懂的國會資訊——預算、法案、質詢、議事流程——變得人人都查得到、看得懂。
+          無論你是工程師、公民團體、學生、記者，還是單純好奇的公民，都歡迎加入。
+        </p>
+        <div class="stats" id="about-stats"></div>
+      </div>
+    </section>
+
+    <section class="section section--alt" id="profile">
+      <div class="wrap">
+        <p class="eyebrow">who joins</p>
+        <h2 class="section__title">誰來參加國會松？</h2>
+        <p class="section__lead">以下是歷次活動會後問卷的彙整（僅呈現聚合統計）。</p>
+        <div class="cards">
+          <div class="card card--wide">
+            <h3 class="card__title">逐場推薦淨值（NPS）</h3>
+            <p class="card__hint">「願意推薦給朋友嗎」0–10 分換算。整體 NPS <strong id="nps-overall">—</strong></p>
+            <div class="chart-box"><canvas id="chart-nps"></canvas></div>
+          </div>
+          <div class="card">
+            <h3 class="card__title">職業背景</h3>
+            <div class="chart-box"><canvas id="chart-occupation"></canvas></div>
+          </div>
+          <div class="card">
+            <h3 class="card__title">怎麼得知國會松</h3>
+            <div class="chart-box"><canvas id="chart-channel"></canvas></div>
+          </div>
+          <div class="card card--wide">
+            <h3 class="card__title">第一次參加 vs 回流</h3>
+            <div class="chart-box chart-box--short"><canvas id="chart-firsttime"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="wishes">
+      <div class="wrap">
+        <p class="eyebrow">what's next</p>
+        <h2 class="section__title">大家還想聽什麼？</h2>
+        <p class="section__lead">
+          對有興趣的主題與形式按 👍（<strong>可複選</strong>），即時看到大家的風向。
+          灰字是歷次問卷提過的人次，給你當參考。沒看到想要的？在最下面許願。
+        </p>
+
+        <div class="vote" id="vote-block">
+          <div class="vote__head">
+            <span class="vote__live">即時投票</span>
+            <span class="vote__cta">👇 點一下投票，可複選</span>
+          </div>
+          <div class="vote__status" id="vote-status"></div>
+
+          <h3 class="vote__grouptitle">想聽的主題</h3>
+          <ul class="vote__list" id="vote-topics"></ul>
+
+          <h3 class="vote__grouptitle">偏好的活動形式</h3>
+          <ul class="vote__list" id="vote-formats"></ul>
+
+          <form class="vote__form" id="vote-form">
+            <label class="vote__formlabel" for="vote-new">沒看到想要的主題？許願一個：</label>
+            <div class="vote__formrow">
+              <input id="vote-new" type="text" maxlength="60" placeholder="例如：地方議會監督怎麼做？" aria-label="許願新主題">
+              <button type="submit" class="btn btn--primary" id="vote-submit">送出許願</button>
+            </div>
+            <div class="cf-turnstile" id="vote-turnstile" data-sitekey=""></div>
+            <p class="vote__msg" id="vote-msg" role="status"></p>
+          </form>
+
+          <p class="vote__tools" id="vote-tools"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt" id="events">
+      <div class="wrap">
+        <p class="eyebrow">archive</p>
+        <h2 class="section__title">歷次國會松</h2>
+        <p class="section__lead">每場都有共筆紀錄，部分場次有回放影片。</p>
+        <div class="events" id="events-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="footer">
+    <div class="wrap footer__inner">
+      <div class="footer__cta">
+        <h2 class="footer__title">訂閱 g<span class="nav__zero">0</span>v 國會松電子報</h2>
+        <p class="footer__sub">掌握每月場次、主題與報名資訊。</p>
+        <a class="btn btn--primary" id="footer-newsletter" href="#" target="_blank" rel="noopener">前往訂閱 →</a>
+      </div>
+      <nav class="footer__links" aria-label="頁尾連結">
+        <a href="https://g0vcongressthon.oen.tw/" target="_blank" rel="noopener">官方站台</a>
+        <a href="https://g0v.tw/" target="_blank" rel="noopener">g0v.tw</a>
+        <a href="https://g0v.hackmd.io/@SA7CD7VRSp6Fcqw9CaElcQ/SJ93ZW5XR/" target="_blank" rel="noopener">歷次共筆</a>
+      </nav>
+      <p class="footer__fine">本站僅呈現會後問卷的聚合統計，不含任何個人資料。資料與原始碼以開源精神維護。</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/chart.umd.min.js"></script>
+  <script src="assets/data/site_data.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/vote.js"></script>
+</body>
+</html>

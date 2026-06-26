@@ -1,2 +1,16 @@
 .claude/
 .DS_Store
+
+# === 專案原則：問卷原始資料與衍生分析一律不上傳 GitHub（避免外洩）===
+data/
+*.xlsx
+*.xls
+*.csv
+*.tsv
+
+# value_synonyms.csv 內含受訪者逐字原始答案，僅留本機（被上面 *.csv 擋住，這裡標註用）
+config/value_synonyms.csv
+
+# 例外：以下設定檔不含任何受訪者原始文字（純方法論），可進版控
+!config/wish_taxonomy.csv
+!config/event_themes.csv
