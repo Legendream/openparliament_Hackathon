@@ -146,7 +146,9 @@
     .vote__item.is-voted .vote__bar{background:color-mix(in srgb, var(--accent) 18%, transparent);}
     .vote__item > *:not(.vote__bar){position:relative; z-index:1;}
     .vote__thumb{font-size:16px;}
-    .vote__text{font-size:15px; font-weight:500; flex:1;}
+    .vote__main{flex:1; display:flex; flex-direction:column; gap:2px; min-width:0;}
+    .vote__text{font-size:15px; font-weight:500;}
+    .vote__desc{font-size:12px; color:var(--mute); line-height:1.4;}
     .vote__ref{font-family:var(--mono); font-size:11px; color:var(--mute); white-space:nowrap;}
     .vote__form{margin-top:22px; border-top:2px dashed var(--hair); padding-top:18px;}
     .vote__formlabel{display:block; font-size:14px; font-weight:500; margin-bottom:8px;}
@@ -155,6 +157,7 @@
     .vote__form .cf-turnstile{margin-top:12px;}
     .vote__msg{font-family:var(--mono); font-size:13px; color:var(--accent-dark); margin:10px 0 0; min-height:1em;}
     .vote__tools{font-family:var(--mono); font-size:12px; color:var(--mute); margin:18px 0 0;}
+    .vote__modnote{font-family:var(--mono); font-size:12px; color:var(--mute); margin:10px 0 0;}
     .vote__community{margin-top:20px; border:2px solid var(--ink); padding:18px 20px; background:var(--accent-soft);}
     .vote__community-title{font-size:15px; font-weight:700; margin:0 0 8px;}
     .vote__community-text{font-size:14px; margin:0 0 6px;}
@@ -213,7 +216,8 @@
         <div class="cards">
           <div class="card card--wide">
             <h3 class="card__title">逐場推薦淨值（NPS）</h3>
-            <p class="card__hint">「願意推薦給朋友嗎」0–10 分換算。整體 NPS <strong id="nps-overall">—</strong></p>
+            <p class="card__hint">問卷問「願不願意推薦給朋友」（0–10 分）。NPS＝推薦者（9–10 分）％ 減 批評者（0–6 分）％，
+              範圍 −100～+100：大於 0 表示推薦的人比不推薦的多，超過 30 就算相當好。整體 NPS <strong id="nps-overall">—</strong></p>
             <div class="chart-box"><canvas id="chart-nps"></canvas></div>
           </div>
           <div class="card">
@@ -239,7 +243,9 @@
         <p class="section__lead">
           我們想辦出真正有用的活動——但需要你告訴我們你在意什麼。
           對有興趣的主題與形式按 👍（<strong>可複選</strong>），工作小組會參考投票結果規劃下一場。
-          灰字是歷次問卷提過的人次，給你當參考。沒看到想要的？在最下面許願。
+          每一項有兩個數字：<strong>👍 是這個網頁上的即時投票</strong>，
+          「📋 問卷 N 人提過」是過去會後問卷統計的人次，兩者分開計算、互不相加。
+          沒看到想要的？在最下面許願。
         </p>
         <p class="section__lead" style="margin-top:-4px;">
           投票後也歡迎<strong>分享這頁給朋友</strong>，讓更多人知道國會松、一起參與 👋
@@ -265,6 +271,7 @@
               <button type="submit" class="btn btn--primary" id="vote-submit">送出許願</button>
             </div>
             <div class="cf-turnstile" id="vote-turnstile" data-sitekey="0x4AAAAAADrd0cmTVEapsyek" data-execution="execute"></div>
+            <p class="vote__modnote">許願送出後會先由工作小組確認（過濾廣告與不當內容），通過才會公開顯示，請稍等一下 🙌</p>
             <p class="vote__msg" id="vote-msg" role="status"></p>
           </form>
 
@@ -306,7 +313,10 @@
         <a href="https://g0v.tw/" target="_blank" rel="noopener">g0v.tw</a>
         <a href="https://g0v.hackmd.io/@SA7CD7VRSp6Fcqw9CaElcQ/SJ93ZW5XR/" target="_blank" rel="noopener">歷次共筆</a>
       </nav>
-      <p class="footer__fine">本站僅呈現會後問卷的聚合統計，不含任何個人資料。資料與原始碼以開源精神維護。</p>
+      <p class="footer__fine">本站僅呈現會後問卷的聚合統計，不含任何個人資料。
+        <a href="https://github.com/Legendream/openparliament_Hackathon" target="_blank" rel="noopener">原始碼在 GitHub</a>（程式碼以
+        <a href="https://github.com/Legendream/openparliament_Hackathon/blob/main/LICENSE" target="_blank" rel="noopener">MIT 授權</a>，網站內容以
+        <a href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" target="_blank" rel="noopener">CC BY 4.0</a> 授權）。</p>
     </div>
   </footer>
 
@@ -602,66 +612,78 @@ window.SITE_DATA = {
       {
         "category": "立委與助理實務",
         "demand": 9,
-        "held": 0
+        "held": 0,
+        "desc": "立委和國會助理實際怎麼工作：質詢、索資、監督策略，怎樣算一個好立委"
       },
       {
         "category": "議事與立法流程",
         "demand": 7,
-        "held": 3
+        "held": 3,
+        "desc": "一個法案從提案到三讀怎麼走：委員會審查、黨團協商、議事規範"
       },
       {
         "category": "AI與資料工具",
         "demand": 4,
-        "held": 4
+        "held": 4,
+        "desc": "用 AI 和資料工具整理國會資料：從大量質詢稿萃取重點、避免 AI 幻覺"
       },
       {
         "category": "預算決算",
         "demand": 4,
-        "held": 7
+        "held": 7,
+        "desc": "政府預算怎麼編、怎麼看：預算編列、獎補助、決算資料"
       },
       {
         "category": "特定政策議題",
         "demand": 3,
-        "held": 1
+        "held": 1,
+        "desc": "個別政策在國會的討論：如教育、經濟、民防、國土計畫"
       },
       {
         "category": "資料解讀與媒體識讀",
         "demand": 3,
-        "held": 2
+        "held": 2,
+        "desc": "怎麼判讀媒體上的國會新聞：分辨事實與政治攻防、追蹤質詢後續"
       },
       {
         "category": "開放國會與透明",
         "demand": 2,
-        "held": 0
+        "held": 0,
+        "desc": "國會資訊怎麼更公開？g0v 推動開放國會的經驗與挑戰"
       }
     ],
     "formats": [
       {
         "category": "講座/邀請來賓",
         "demand": 2,
-        "held": 0
+        "held": 0,
+        "desc": "邀請立委、實務工作者、開發者來分享"
       },
       {
         "category": "交流/聊聊",
         "demand": 1,
-        "held": 0
+        "held": 0,
+        "desc": "和國會助理等實務工作者輕鬆聊聊、互相認識"
       },
       {
         "category": "工作坊/動手做",
         "demand": 1,
-        "held": 0
+        "held": 0,
+        "desc": "動手實作的教學工作坊"
       },
       {
         "category": "針對特定受眾",
         "demand": 1,
-        "held": 0
+        "held": 0,
+        "desc": "為大學生、新手設計的入門場次"
       }
     ],
     "tools": [
       {
         "category": "工具/平台建議",
         "demand": 3,
-        "held": 0
+        "held": 0,
+        "desc": "例如手機版查詢、給一般公民的國會資訊平台總覽"
       }
     ],
     "valid_n": 29
@@ -979,32 +1001,39 @@ window.SITE_DATA = {
   }
   function flash(t) { if (msgEl) msgEl.textContent = t; }
 
-  function itemHtml(text, ref, live) {
+  function itemHtml(text, ref, live, desc) {
     var cnt = live && live.votes != null ? live.votes : "";
     var voted = live && live.voted ? " is-voted" : "";
     var disabled = live ? "" : " is-disabled";
-    var refTxt = ref != null ? "問卷 " + ref + " 提過" : "新許願";
+    var refTxt = ref != null ? "📋 問卷 " + ref + " 人提過" : "新許願";
     return '<li class="vote__item' + voted + disabled + '" data-text="' + esc(text) + '"' +
+      ' data-votes="' + (live && live.votes ? live.votes : 0) + '"' +
       (live ? ' data-id="' + live.id + '"' : "") + '>' +
       '<div class="vote__bar"></div>' +
       '<button type="button" class="vote__btn" tabindex="-1"><span class="vote__thumb">👍</span>' +
       '<span class="vote__count">' + cnt + '</span></button>' +
-      '<span class="vote__text">' + esc(text) + '</span>' +
+      '<span class="vote__main"><span class="vote__text">' + esc(text) + '</span>' +
+      (desc ? '<span class="vote__desc">' + esc(desc) + '</span>' : '') + '</span>' +
       '<span class="vote__ref">' + refTxt + '</span></li>';
   }
 
   // 1) 先用問卷資料畫出清單（唯讀）
-  function base(arr) { return (arr || []).map(function (x) { return { text: x.category, ref: x.demand }; }); }
+  function base(arr) { return (arr || []).map(function (x) { return { text: x.category, ref: x.demand, desc: x.desc }; }); }
   function renderBase(el, items) {
-    el.innerHTML = items.map(function (x) { return itemHtml(x.text, x.ref, null); }).join("") || '<li class="vote__ref">—</li>';
+    el.innerHTML = items.map(function (x) { return itemHtml(x.text, x.ref, null, x.desc); }).join("") || '<li class="vote__ref">—</li>';
   }
   var topicBase = base(wish.topics);
   var formatBase = base(wish.formats);
   renderBase(topicsEl, topicBase);
   renderBase(formatsEl, formatBase);
   if (toolsEl) {
-    var tools = (wish.tools || []).map(function (t) { return t.category + "（" + t.demand + "）"; });
-    toolsEl.textContent = tools.length ? "另有工具/平台類建議：" + tools.join("、") : "";
+    var toolRows = wish.tools || [];
+    var toolN = toolRows.reduce(function (s, t) { return s + (t.demand || 0); }, 0);
+    toolsEl.textContent = toolN
+      ? "問卷許願中另有 " + toolN + " 則不是想聽的講題，而是希望把國會資訊工具做得更好用" +
+        "（" + (toolRows[0].desc || "對國會資訊平台與工具的建議") + "）。" +
+        "這類建議不列入投票，由籌備工作小組另行參考。"
+      : "";
   }
 
   // file:// 無 API
@@ -1020,8 +1049,22 @@ window.SITE_DATA = {
     localStorage.setItem("congressthon_voter", voter);
   }
 
-  var refMap = {}; // text -> 問卷人次
-  topicBase.concat(formatBase).forEach(function (x) { refMap[x.text] = x.ref; });
+  var refMap = {};  // text -> 問卷人次
+  var descMap = {}; // text -> 分類白話說明
+  topicBase.concat(formatBase).forEach(function (x) { refMap[x.text] = x.ref; descMap[x.text] = x.desc; });
+
+  // 依票數重排並更新背景進度條（票數相對最高者的比例）
+  function sortAndBar(ul) {
+    var items = Array.prototype.slice.call(ul.querySelectorAll(".vote__item"));
+    var max = items.reduce(function (m, li) { return Math.max(m, +(li.getAttribute("data-votes") || 0)); }, 0);
+    items.sort(function (a, b) { return (+(b.getAttribute("data-votes") || 0)) - (+(a.getAttribute("data-votes") || 0)); });
+    items.forEach(function (li) {
+      ul.appendChild(li);
+      var v = +(li.getAttribute("data-votes") || 0);
+      var bar = li.querySelector(".vote__bar");
+      if (bar) bar.style.width = max > 0 ? (v / max * 100) + "%" : "0%";
+    });
+  }
 
   // 2) 疊上即時票數並開放點擊
   function applyLive(rows) {
@@ -1030,28 +1073,18 @@ window.SITE_DATA = {
       var el = groups[r.kind] || topicsEl;
       var li = el.querySelector('[data-text="' + cssEsc(r.text) + '"]');
       if (!li) {
-        el.insertAdjacentHTML("beforeend", itemHtml(r.text, refMap[r.text] != null ? refMap[r.text] : null, r));
+        el.insertAdjacentHTML("beforeend",
+          itemHtml(r.text, refMap[r.text] != null ? refMap[r.text] : null, r, descMap[r.text]));
       } else {
         li.classList.remove("is-disabled");
         li.classList.toggle("is-voted", !!r.voted);
         li.setAttribute("data-id", r.id);
+        li.setAttribute("data-votes", r.votes || 0);
         li.querySelector(".vote__count").textContent = r.votes;
       }
-      li = el.querySelector('[data-text="' + cssEsc(r.text) + '"]');
-      if (li) li.setAttribute("data-votes", r.votes || 0);
     });
-    // 依票數排序、更新進度條
-    [topicsEl, formatsEl].forEach(function (ul) {
-      var items = Array.from(ul.querySelectorAll(".vote__item"));
-      var max = items.reduce(function (m, li) { return Math.max(m, +(li.getAttribute("data-votes") || 0)); }, 0);
-      items.sort(function (a, b) { return (+(b.getAttribute("data-votes") || 0)) - (+(a.getAttribute("data-votes") || 0)); });
-      items.forEach(function (li) {
-        ul.appendChild(li);
-        var v = +(li.getAttribute("data-votes") || 0);
-        var bar = li.querySelector(".vote__bar");
-        if (bar) bar.style.width = max > 0 ? (v / max * 100) + "%" : "0%";
-      });
-    });
+    sortAndBar(topicsEl);
+    sortAndBar(formatsEl);
     if (statusEl) statusEl.textContent = "";
   }
   function cssEsc(s) { return String(s).replace(/"/g, '\\"'); }
@@ -1077,18 +1110,9 @@ window.SITE_DATA = {
     }).then(function (r) { return r.json(); }).then(function (d) {
       if (d && d.ok) {
         li.classList.toggle("is-voted", d.voted);
-        li.querySelector(".vote__count").textContent = d.votes;
         li.setAttribute("data-votes", d.votes || 0);
-        var ul = li.parentElement;
-        var items = Array.from(ul.querySelectorAll(".vote__item"));
-        var max = items.reduce(function (m, x) { return Math.max(m, +(x.getAttribute("data-votes") || 0)); }, 0);
-        items.sort(function (a, b) { return (+(b.getAttribute("data-votes") || 0)) - (+(a.getAttribute("data-votes") || 0)); });
-        items.forEach(function (x) {
-          ul.appendChild(x);
-          var v = +(x.getAttribute("data-votes") || 0);
-          var bar = x.querySelector(".vote__bar");
-          if (bar) bar.style.width = max > 0 ? (v / max * 100) + "%" : "0%";
-        });
+        li.querySelector(".vote__count").textContent = d.votes;
+        sortAndBar(li.parentElement);
       } else { flash((d && d.error) || "投票失敗"); }
     }).catch(function () { flash("連線失敗"); });
   }

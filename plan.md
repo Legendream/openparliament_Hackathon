@@ -23,7 +23,7 @@ assets/
   js/chart.umd.min.js       本機化的 Chart.js（不依賴 CDN）
   data/site_data.{json,js}  網站用聚合資料（由 build_site_data.py 產生，僅聚合值）
 config/                     人工判斷設定檔（pipeline 讀取）
-  wish_taxonomy.csv         ✅可上傳：主題分類維度+關鍵字（主題/活動形式/工具建議）
+  wish_taxonomy.csv         ✅可上傳：主題分類維度+關鍵字+白話說明（主題/活動形式/工具建議）
   event_themes.csv          ✅可上傳：各場真實標題/連結/主題分類（公開資訊）
   value_synonyms.csv        ⛔本機：職業/管道同義詞（含逐字原文）
   wish_labels.csv           ⛔本機：許願逐筆人工分類（含逐字原文）
@@ -70,4 +70,28 @@ data/                       ⛔本機：正規化逐筆、分析輸出（gitigno
 - 上線步驟見 `TODO_投票功能.md` / `voting/DEPLOY.md`（建帳號/金鑰/部署由專案擁有者執行）。
 
 ## 部署
-- 目前靜態版可放 GitHub Pages；**投票功能需改用 Cloudflare Pages**（才有後端+D1）。
+- **正式站**：`congressthon.claire-cheng.com`（Cloudflare Pages 自訂網域，2026-06 完成）
+- Pages 專案：`openparliament-hackathon`，帳號 `claire18412@gmail.com`
+- D1：`congressthon`，Turnstile invisible widget 已上線
+
+## 最近完成（2026-06）
+- Turnstile invisible mode 修正（`5be3772`）：改用 `turnstile.execute()` 觸發，許願送出正常。
+- 自訂網域：`congressthon.claire-cheng.com` 綁定完成。
+- 投票區 UX 強化（PR #1，已 merge）：
+  - 說明投票意義（工作小組會參考）、加分享呼籲
+  - 投票項目加背景進度條（相對票數比例）、票數數字放大、依票數排序
+  - 加入 g0v 國會松 Slack channel 入口（含未有帳號的申請連結）
+
+## 最近完成（2026-07）
+- 上次 PR 的 UX 改動（排序/進度條/Slack 入口）補回 `src/index.src.html` + `vote.js`
+  來源層，避免下次跑 pipeline 重新打包時被覆蓋消失。
+- 投票區可讀性修正（依會後收集到的問題清單逐項處理）：
+  - 區分「👍 即時投票」與「📋 問卷 N 人提過」兩種數字的來源說明
+  - NPS 卡片加白話公式（推薦者%－批評者%，範圍/門檻說明）
+  - `wish_taxonomy.csv` 新增 `description` 欄：依 raw data 為每個許願分類寫白話說明
+    （例如「開放國會與透明」→「國會資訊怎麼更公開？g0v 推動開放國會的經驗與挑戰」），
+    顯示在投票項目副標；`build_site_data.py` 一併 join 進 site_data
+  - 工具/平台類許願改成訪客與工作小組都看得懂的說法：講清楚「這是什麼、為何不列入投票、
+    誰會處理」，而非單純同語反覆的分類名稱
+  - 許願表單加審核提示（送出後由工作小組確認才會顯示）
+- 新增 `LICENSE`（程式碼 MIT + 網站內容 CC BY 4.0 雙授權），footer 加原始碼連結與授權標示。

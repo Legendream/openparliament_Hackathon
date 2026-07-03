@@ -133,16 +133,22 @@
     .vote__grouptitle{font-size:15px; margin:20px 0 10px; padding-bottom:6px; border-bottom:2px solid var(--ink);}
     .vote__list{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px;}
     .vote__item{display:flex; align-items:center; gap:10px; border:2px solid var(--hair); padding:10px 12px; background:var(--paper);
-      cursor:pointer; transition:transform .08s ease, box-shadow .08s ease, border-color .1s ease;}
+      cursor:pointer; transition:transform .08s ease, box-shadow .08s ease, border-color .1s ease; position:relative; overflow:hidden;}
     .vote__item:hover{border-color:var(--ink); transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--ink);}
     .vote__item.is-voted{border-color:var(--accent); background:var(--accent-soft);}
     .vote__item.is-disabled{cursor:default; opacity:.7;}
     .vote__item.is-disabled:hover{transform:none; box-shadow:none; border-color:var(--hair);}
     .vote__btn{display:flex; align-items:center; gap:6px; border:2px solid var(--ink); background:var(--paper);
-      font-family:var(--mono); font-size:15px; font-weight:500; padding:6px 10px; line-height:1; pointer-events:none;}
+      font-family:var(--mono); font-size:15px; font-weight:500; padding:6px 10px; line-height:1; pointer-events:none; min-width:52px; justify-content:center;}
     .vote__item.is-voted .vote__btn{background:var(--accent); color:#fff; border-color:var(--accent);}
+    .vote__count{font-size:17px; font-weight:700;}
+    .vote__bar{position:absolute; inset:0; background:var(--accent-soft); width:0%; transition:width .4s ease; z-index:0; pointer-events:none;}
+    .vote__item.is-voted .vote__bar{background:color-mix(in srgb, var(--accent) 18%, transparent);}
+    .vote__item > *:not(.vote__bar){position:relative; z-index:1;}
     .vote__thumb{font-size:16px;}
-    .vote__text{font-size:15px; font-weight:500; flex:1;}
+    .vote__main{flex:1; display:flex; flex-direction:column; gap:2px; min-width:0;}
+    .vote__text{font-size:15px; font-weight:500;}
+    .vote__desc{font-size:12px; color:var(--mute); line-height:1.4;}
     .vote__ref{font-family:var(--mono); font-size:11px; color:var(--mute); white-space:nowrap;}
     .vote__form{margin-top:22px; border-top:2px dashed var(--hair); padding-top:18px;}
     .vote__formlabel{display:block; font-size:14px; font-weight:500; margin-bottom:8px;}
@@ -151,6 +157,12 @@
     .vote__form .cf-turnstile{margin-top:12px;}
     .vote__msg{font-family:var(--mono); font-size:13px; color:var(--accent-dark); margin:10px 0 0; min-height:1em;}
     .vote__tools{font-family:var(--mono); font-size:12px; color:var(--mute); margin:18px 0 0;}
+    .vote__modnote{font-family:var(--mono); font-size:12px; color:var(--mute); margin:10px 0 0;}
+    .vote__community{margin-top:20px; border:2px solid var(--ink); padding:18px 20px; background:var(--accent-soft);}
+    .vote__community-title{font-size:15px; font-weight:700; margin:0 0 8px;}
+    .vote__community-text{font-size:14px; margin:0 0 6px;}
+    .vote__community-hint{font-family:var(--mono); font-size:12px; color:var(--mute); margin:0;}
+    .vote__community a{color:var(--accent-dark); font-weight:600;}
   </style>
 </head>
 <body>
@@ -204,7 +216,8 @@
         <div class="cards">
           <div class="card card--wide">
             <h3 class="card__title">逐場推薦淨值（NPS）</h3>
-            <p class="card__hint">「願意推薦給朋友嗎」0–10 分換算。整體 NPS <strong id="nps-overall">—</strong></p>
+            <p class="card__hint">問卷問「願不願意推薦給朋友」（0–10 分）。NPS＝推薦者（9–10 分）％ 減 批評者（0–6 分）％，
+              範圍 −100～+100：大於 0 表示推薦的人比不推薦的多，超過 30 就算相當好。整體 NPS <strong id="nps-overall">—</strong></p>
             <div class="chart-box"><canvas id="chart-nps"></canvas></div>
           </div>
           <div class="card">
@@ -228,8 +241,14 @@
         <p class="eyebrow">what's next</p>
         <h2 class="section__title">大家還想聽什麼？</h2>
         <p class="section__lead">
-          對有興趣的主題與形式按 👍（<strong>可複選</strong>），即時看到大家的風向。
-          灰字是歷次問卷提過的人次，給你當參考。沒看到想要的？在最下面許願。
+          我們想辦出真正有用的活動——但需要你告訴我們你在意什麼。
+          對有興趣的主題與形式按 👍（<strong>可複選</strong>），工作小組會參考投票結果規劃下一場。
+          每一項有兩個數字：<strong>👍 是這個網頁上的即時投票</strong>，
+          「📋 問卷 N 人提過」是過去會後問卷統計的人次，兩者分開計算、互不相加。
+          沒看到想要的？在最下面許願。
+        </p>
+        <p class="section__lead" style="margin-top:-4px;">
+          投票後也歡迎<strong>分享這頁給朋友</strong>，讓更多人知道國會松、一起參與 👋
         </p>
 
         <div class="vote" id="vote-block">
@@ -252,10 +271,22 @@
               <button type="submit" class="btn btn--primary" id="vote-submit">送出許願</button>
             </div>
             <div class="cf-turnstile" id="vote-turnstile" data-sitekey="0x4AAAAAADrd0cmTVEapsyek" data-execution="execute"></div>
+            <p class="vote__modnote">許願送出後會先由工作小組確認（過濾廣告與不當內容），通過才會公開顯示，請稍等一下 🙌</p>
             <p class="vote__msg" id="vote-msg" role="status"></p>
           </form>
 
           <p class="vote__tools" id="vote-tools"></p>
+        </div>
+
+        <div class="vote__community">
+          <p class="vote__community-title">💬 加入社群，繼續交流</p>
+          <p class="vote__community-text">
+            加入 <strong>g0v 國會松 Slack channel</strong>，瞭解活動最新資訊、跟同好一起交流：
+            <a href="https://g0v-tw.slack.com/archives/CDRE0Q0CE" target="_blank" rel="noopener">前往頻道</a>
+          </p>
+          <p class="vote__community-hint">
+            尚未註冊 g0v Slack 帳號？<a href="https://join.g0v.tw/" target="_blank" rel="noopener">先到這裡申請 →</a>
+          </p>
         </div>
       </div>
     </section>
@@ -282,7 +313,10 @@
         <a href="https://g0v.tw/" target="_blank" rel="noopener">g0v.tw</a>
         <a href="https://g0v.hackmd.io/@SA7CD7VRSp6Fcqw9CaElcQ/SJ93ZW5XR/" target="_blank" rel="noopener">歷次共筆</a>
       </nav>
-      <p class="footer__fine">本站僅呈現會後問卷的聚合統計，不含任何個人資料。資料與原始碼以開源精神維護。</p>
+      <p class="footer__fine">本站僅呈現會後問卷的聚合統計，不含任何個人資料。
+        <a href="https://github.com/Legendream/openparliament_Hackathon" target="_blank" rel="noopener">原始碼在 GitHub</a>（程式碼以
+        <a href="https://github.com/Legendream/openparliament_Hackathon/blob/main/LICENSE" target="_blank" rel="noopener">MIT 授權</a>，網站內容以
+        <a href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" target="_blank" rel="noopener">CC BY 4.0</a> 授權）。</p>
     </div>
   </footer>
 

@@ -45,9 +45,16 @@ def main():
 
     wd = read_csv(os.path.join(ANALYSIS, "wish_demand.csv"))
 
+    # 分類白話說明（人工撰寫的聚合描述，非逐字答案，可公開）
+    taxonomy = read_csv(os.path.join(CONFIG, "wish_taxonomy.csv"))
+    desc_map = {(t["dimension"], t["category"]): t.get("description", "")
+                for t in taxonomy}
+
     def wish_group(dim):
         return [{"category": r["category"], "demand": num(r["demand"]),
-                 "held": num(r["held_ref"])} for r in wd if r["dimension"] == dim]
+                 "held": num(r["held_ref"]),
+                 "desc": desc_map.get((dim, r["category"]), "")}
+                for r in wd if r["dimension"] == dim]
 
     wish = {"topics": wish_group("主題"), "formats": wish_group("活動形式"),
             "tools": wish_group("工具建議"), "valid_n": summary.get("wish_responses")}
