@@ -52,6 +52,12 @@ config/
 - `wish_topics_tagged.csv`、`wish_demand_vs_held.csv`（功能②：主題需求強度 × 是否已辦）
 - `summary.json`（首頁彙總數字）
 
+## 授權
+
+- 程式碼：[MIT](LICENSE)
+- 網站內容（文字、聚合統計圖表）：[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh-hant)
+- 問卷 raw data 不在此 repo、不適用上述授權（見資料隱私原則）
+
 ## 狀態
 
 籌備中（g0v 國會松籌備工作小組）

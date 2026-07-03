@@ -1,5 +1,6 @@
 .claude/
 .DS_Store
+.wrangler/
 
 # === 專案原則：問卷原始資料與衍生分析一律不上傳 GitHub（避免外洩）===
 data/
