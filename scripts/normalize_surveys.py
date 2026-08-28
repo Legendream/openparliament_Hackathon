@@ -6,7 +6,9 @@
 
 可持續擴充：未來新增月份 = 在 xlsx 多一個分頁（或換新檔），重跑即可。
 表頭以關鍵字比對，欄位順序/微調文字不影響。新出現、未對應的職業/管道值
-會寫進 data/analysis/unmapped_values.csv 供人工補進 config/value_synonyms.csv。
+會寫進 data/analysis/unmapped_values.csv 供人工補進 config/value_synonyms.csv
+（含新格式職業兩題的 occupation_org / occupation_role 自由填答；
+ 表單既有選項的分類規則則放可進版控的 config/occupation_crosswalk.csv）。
 """
 import csv
 import os
@@ -17,13 +19,22 @@ SRC = os.path.expanduser("~/Downloads/歷次問卷＿去識別化後整合.xlsx"
 OUT_DIR = os.path.join(ROOT, "data")
 ANALYSIS_DIR = os.path.join(OUT_DIR, "analysis")
 SYNONYMS = os.path.join(ROOT, "config", "value_synonyms.csv")
+CROSSWALK = os.path.join(ROOT, "config", "occupation_crosswalk.csv")
 os.makedirs(ANALYSIS_DIR, exist_ok=True)
 
 # 標準欄位 -> 比對表頭的關鍵字（命中即對應）
+# 職業有新舊兩種問法：
+#   舊（～2026.8）：單題「請問你的職業背景是？」   -> occupation
+#   新（2026.9～）：兩題「你在哪一類組織工作或就學？」-> occupation_org
+#                        「你的工作內容最接近哪一類？」-> occupation_role
+# 三個關鍵字彼此互斥，同一份表頭不會互相搶欄位。
 FIELD_KEYWORDS = {
     "nps": ["願意向朋友推薦"],
     "is_first_time": ["第一次參加"],
     "occupation": ["職業背景"],
+    # 多給幾個同義關鍵字，題目文字微調時比較不會整欄漏抓
+    "occupation_org": ["哪一類組織", "組織工作或就學", "類組織"],
+    "occupation_role": ["工作內容"],
     "channel": ["哪個管道"],
     "join_reason": ["為什麼想參加"],
     "wish_topic": ["徵集各式", "好奇、想瞭解的主題", "好奇"],
@@ -31,7 +42,8 @@ FIELD_KEYWORDS = {
     "timestamp": ["時間戳記"],
 }
 STD_FIELDS = ["event", "timestamp", "nps", "is_first_time",
-              "occupation", "channel", "join_reason", "wish_topic", "impressed"]
+              "occupation", "occupation_org", "occupation_role",
+              "channel", "join_reason", "wish_topic", "impressed"]
 CANON_FIELDS = ["occupation", "channel", "is_first_time"]
 
 
@@ -43,6 +55,63 @@ def load_synonyms():
             for r in csv.DictReader(f):
                 m[(r["field"], r["raw"].strip())] = r["canonical"].strip()
     return m
+
+
+def squash(s):
+    """比對用：去掉所有空白，讓選項文字的空格差異不影響對照。"""
+    return "".join((s or "").split())
+
+
+def load_crosswalk():
+    """回傳 (rules, known_roles)。
+
+    rules       {(squash(org) or '*', squash(role) or '*'): canonical}
+    known_roles 表單既有的工作內容選項（squash 過），用來分辨自由填答。
+    """
+    rules, known_roles = {}, set()
+    if not os.path.exists(CROSSWALK):
+        return rules, known_roles
+    with open(CROSSWALK, encoding="utf-8-sig") as f:
+        lines = [ln for ln in f if not ln.lstrip().startswith("#")]
+    for r in csv.DictReader(lines):
+        org = r["org"].strip()
+        role = r["role"].strip()
+        okey = "*" if org == "*" else squash(org)
+        rkey = "*" if role == "*" else squash(role)
+        rules[(okey, rkey)] = r["canonical"].strip()
+        if rkey != "*":
+            known_roles.add(rkey)
+    return rules, known_roles
+
+
+def resolve_occupation(org, role, rules, known_roles, syn):
+    """新格式（兩題）-> canonical。回傳 (canonical, [unmapped_notes])。
+
+    自由填答先查本機同義詞表歸一，再依
+    (組織, 工作內容) → (*, 工作內容) → (組織, *) 的順序查交叉表。
+    canonical 為 "-" 代表「已知選項但不覆寫」，continue 往下一個規則找。
+    對不到的值一律回報，不靜默吞掉。
+    """
+    notes = []
+    if not org.strip() and not role.strip():
+        return "", notes          # 兩題皆空＝舊格式或未填，不是未對應
+    org = syn.get(("occupation_org", org.strip()), org)
+    role = syn.get(("occupation_role", role.strip()), role)
+    o, r = squash(org), squash(role)
+
+    if r and r not in known_roles:
+        notes.append(("occupation_role", role))
+    if not o:
+        # 只答了工作內容、或表頭沒抓到組織別欄位——無法分類，但要留下痕跡
+        notes.append(("occupation_org", "(缺組織別)"))
+        return "", notes
+
+    for key in ((o, r), ("*", r), (o, "*")):
+        val = rules.get(key)
+        if val and val != "-":
+            return val, notes
+    notes.append(("occupation_org", org))
+    return "其他/未提供", notes
 
 
 def match_field(header):
@@ -62,6 +131,7 @@ def clean(v):
 
 def main():
     syn = load_synonyms()
+    cross, known_roles = load_crosswalk()
     wb = openpyxl.load_workbook(SRC, data_only=True)
     all_rows, events, unmapped = [], [], set()
 
@@ -78,6 +148,10 @@ def main():
                 col_map[i] = fld
         extra_headers = [clean(h) for i, h in enumerate(header)
                          if i not in col_map and clean(h)]
+        # 職業兩題是一組的，只抓到一題通常代表題目文字被改過（否則會整欄靜默漏掉）
+        found = set(col_map.values())
+        if ("occupation_org" in found) != ("occupation_role" in found):
+            print(f"  ⚠ 分頁「{ws.title}」只辨識到職業兩題中的一題，請檢查題目文字")
 
         nps_scores = []
         for r in rows[1:]:
@@ -90,6 +164,14 @@ def main():
             # 套用同義詞對照（保留原值，新增 *_canon）
             for fld in CANON_FIELDS:
                 raw = rec[fld]
+                # 新格式的職業改走兩題交叉對照
+                if fld == "occupation" and (rec["occupation_org"] or rec["occupation_role"]):
+                    canon, notes = resolve_occupation(
+                        rec["occupation_org"], rec["occupation_role"],
+                        cross, known_roles, syn)
+                    rec["occupation_canon"] = canon
+                    unmapped.update(notes)
+                    continue
                 if raw:
                     if (fld, raw) in syn:
                         rec[fld + "_canon"] = syn[(fld, raw)]
@@ -138,7 +220,11 @@ def main():
             w.writerow([fld, raw])
 
     print(f"場次數: {len(events)}  逐筆回覆數: {len(all_rows)}")
-    print(f"未對應值（需補 config/value_synonyms.csv）: {len(unmapped)} 個")
+    # 「缺組織別」是結構問題（沒有值可以對照），跟一般的未對應值分開報
+    n_missing = sum(1 for _, v in unmapped if v == "(缺組織別)")
+    print(f"未對應值（需補 config/value_synonyms.csv）: {len(unmapped) - n_missing} 個")
+    if n_missing:
+        print("  ⚠ 有回覆缺組織別（只答了工作內容，或表頭沒抓到該欄），這些筆職業無法分類")
     print(f"輸出: data/responses_normalized.csv, data/events.csv, data/analysis/unmapped_values.csv")
 
 
