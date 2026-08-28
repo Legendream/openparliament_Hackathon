@@ -8,7 +8,7 @@
 - 問卷 **raw data 不進 repo、不上傳**（放 `~/Downloads`，不複製進專案）。
 - 衍生**分析結果只留本機 `data/`**；**含逐字答案的設定檔也只留本機**。
 - 網站只呈現**聚合統計**(人數/百分比/NPS)，不可回推個人。
-- `.gitignore` 已排除：`data/`、所有 `*.csv`、`*.xlsx`；其中 config 內**只放行**兩支
+- `.gitignore` 已排除：`data/`、所有 `*.csv`、`*.xlsx`；其中 config 內**只放行**三支
   純方法論檔(見下)。`config/value_synonyms.csv`、`config/wish_labels.csv` 含逐字原文 → 留本機。
 
 ## 目錄結構
@@ -25,6 +25,7 @@ assets/
 config/                     人工判斷設定檔（pipeline 讀取）
   wish_taxonomy.csv         ✅可上傳：主題分類維度+關鍵字+白話說明（主題/活動形式/工具建議）
   event_themes.csv          ✅可上傳：各場真實標題/連結/主題分類（公開資訊）
+  occupation_crosswalk.csv  ✅可上傳：職業兩題交叉對照（只有表單選項，無受訪者原文）
   value_synonyms.csv        ⛔本機：職業/管道同義詞（含逐字原文）
   wish_labels.csv           ⛔本機：許願逐筆人工分類（含逐字原文）
 scripts/
@@ -51,7 +52,10 @@ data/                       ⛔本機：正規化逐筆、分析輸出（gitigno
 4. `data/analysis/unmapped_values.csv` 若有新職業/管道寫法 → 補 `config/value_synonyms.csv`。
 5. 新增的許願 → 在 `config/wish_labels.csv` 人工校訂分類（未校訂者自動用關鍵字暫歸）。
 
-- 表頭以關鍵字比對，欄位順序/題目微調不影響整併。
+- 表頭以關鍵字比對，欄位順序不影響整併；題目微調可以，但別動到關鍵字本身
+  （職業兩題＝「哪一類組織」「工作內容」），只抓到其中一題時 normalize 會印警告。
+- 職業題 2026.9 起改兩題（組織別×工作內容），以 `occupation_crosswalk.csv` 收斂回 13 類；
+  **新舊口徑不同**（新的以組織別為主），跨期比較要留意，詳見 README。
 - 許願分類採**逐筆人工語意判讀**（存 wish_labels.csv），優先於關鍵字自動標。
 
 ## 網站區塊（單頁 + 錨點導覽）
