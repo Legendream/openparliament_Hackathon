@@ -70,7 +70,8 @@ config/
 
 - `nps_by_event.csv`／整體 NPS、推薦/中立/貶損
 - `composition_occupation.csv`、`composition_channel.csv`、`composition_first_time.csv`
-- `wish_topics_tagged.csv`、`wish_demand_vs_held.csv`（功能②：主題需求強度 × 是否已辦）
+- `wish_topics_tagged.csv`、`wish_demand.csv`（功能②：主題需求強度 × 已辦次數參考）
+- `helpfulness_by_event.csv`（單場成效自評；題幹綁該場主題、跨場不可比，**只留本機、不上網站**）
 - `summary.json`（首頁彙總數字）
 
 ## 授權

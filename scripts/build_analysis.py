@@ -7,7 +7,8 @@
   composition_channel.csv    管道組成（canonical）
   composition_first_time.csv 新舊參與者
   wish_topics_tagged.csv     每筆許願 + 主題標籤（多標）
-  wish_demand_vs_held.csv    ★功能②決策表：主題需求強度 × 是否已辦
+  wish_demand.csv           ★功能②決策表：主題需求強度 × 已辦次數參考
+  helpfulness_by_event.csv  單場成效自評（題幹綁該場主題，跨場不可比，不上網站）
   summary.json               首頁用的彙總數字
 """
 import csv
@@ -95,6 +96,16 @@ def main():
         return [{"value": k, "count": v, "pct": round(v / total * 100, 1)}
                 for k, v in c.most_common()], total
 
+    # 哪些場次有問管道題（用來說明管道圖的分母）。
+    # 依 events.csv 的 fields_present（取自問卷表頭）判定，不用「有沒有人填」反推——
+    # 否則一場有問但全體跳答，網站會斷言「這場沒問這題」，那是資料撐不住的說法。
+    events_meta = read_csv(os.path.join(DATA, "events.csv"))
+    asked_channel = {e["event"] for e in events_meta
+                     if "channel" in (e.get("fields_present") or "").split(";")}
+    missing_channel = sorted((e["event"] for e in events_meta
+                              if e["event"] not in asked_channel),
+                             key=lambda x: order.get(x, 999))
+
     occ, occ_total = composition("occupation_canon")
     chan, chan_total = composition("channel_canon")
     ft, ft_total = composition("is_first_time_canon")
@@ -148,6 +159,51 @@ def main():
     write_csv("wish_demand.csv",
               ["dimension", "category", "demand", "held_ref"], demand_rows)
 
+    # ---- 單場成效自評（5 分制） ----
+    # 題幹綁該場主題（例如「對瞭解議會運作方式的幫助」），跨場問的不是同一件事，
+    # 所以只輸出單場數字、不進 summary.json、不進網站——避免長得像可以比較。
+    HELP_ITEMS = [("help_operation", "對瞭解議會運作方式的幫助"),
+                  ("help_data", "對看懂議會資料的幫助")]
+    HELP_MIN, HELP_MAX = 1, 5      # 目前是 5 分制；量表改了要一起改這裡
+    help_rows = []
+    for ev in sorted({r["event"] for r in rows}, key=lambda e: order.get(e, 999)):
+        for fld, label in HELP_ITEMS:
+            vals, out_of_range, not_numeric = [], 0, 0
+            for r in rows:
+                if r["event"] != ev:
+                    continue
+                raw = (r.get(fld) or "").strip()
+                if not raw:
+                    continue      # 沒問這題、或這題沒填
+                try:
+                    v = float(raw)
+                except (ValueError, TypeError):
+                    not_numeric += 1
+                    continue
+                if HELP_MIN <= v <= HELP_MAX:
+                    vals.append(v)
+                else:
+                    out_of_range += 1
+            dropped = out_of_range + not_numeric
+            if out_of_range:
+                # 量表換了（例如改成 1–10）卻沒改這裡的話，平均會算在偏頻的子集上，
+                # 而且看起來完全正常。這種錯一定要吵出來。
+                print(f"  ⚠ {ev}「{label}」有 {out_of_range} 筆作答不在 "
+                      f"{HELP_MIN}–{HELP_MAX} 範圍內、未計入平均，請確認量表是否改過")
+            if not_numeric:
+                print(f"  ⚠ {ev}「{label}」有 {not_numeric} 筆作答不是數字、"
+                      f"未計入平均，請確認題型是否改過")
+            if not vals:
+                continue          # 沒問這題的場次不列，不要製造 0 分的假象
+            dist = ";".join(f"{k}分:{sum(1 for v in vals if v == k)}"
+                            for k in range(HELP_MIN, HELP_MAX + 1))
+            # dropped 要留在檔案裡：只看 CSV 的人才發現得了「n 為什麼比回覆數少」
+            help_rows.append({"event": ev, "item": label, "n": len(vals),
+                              "mean": round(sum(vals) / len(vals), 2),
+                              "distribution": dist, "dropped": dropped})
+    write_csv("helpfulness_by_event.csv",
+              ["event", "item", "n", "mean", "distribution", "dropped"], help_rows)
+
     # ---- summary.json ----
     summary = {
         "events": len(themes),
@@ -158,6 +214,11 @@ def main():
         "first_time_pct": next((x["pct"] for x in ft if x["value"] == "首次參加"), None),
         "returning_pct": next((x["pct"] for x in ft if x["value"] == "回流參加"), None),
         "wish_responses": len(tagged),
+        # 管道題不是每場都問，圖的分母因此不等於總回覆數。
+        # 這裡把涵蓋範圍一起輸出，讓網站的說明文字由資料算出來，不會寫死而過期。
+        "channel_n": chan_total,
+        "channel_events": len(asked_channel),
+        "channel_missing_events": missing_channel,
         "top_topics": [d["category"] for d in demand_rows if d["dimension"] == "主題"][:5],
     }
     with open(os.path.join(ANALYSIS, "summary.json"), "w", encoding="utf-8") as f:
@@ -166,6 +227,10 @@ def main():
     print(f"整體 NPS={overall_nps} (n={len(all_scores)}) | 許願有效={len(tagged)}"
           f"（人工校訂 {n_curated} / 自動 {n_auto}）")
     print(f"主題需求 Top: {summary['top_topics']}")
+    if help_rows:
+        print("單場成效自評（不進網站）:")
+        for h in help_rows:
+            print(f"  {h['event']} {h['item']}：平均 {h['mean']}（n={h['n']}）")
     print(f"輸出於 data/analysis/")
 
 
