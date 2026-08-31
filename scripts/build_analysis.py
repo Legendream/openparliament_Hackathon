@@ -22,6 +22,10 @@ ANALYSIS = os.path.join(DATA, "analysis")
 CONFIG = os.path.join(ROOT, "config")
 os.makedirs(ANALYSIS, exist_ok=True)
 
+# 新格式職業資料累積到這個筆數，就把網站的職業圖切成只用新格式（見 README）。
+# 13 個分類要能講佔比，平均每類至少要 7–8 筆才不會整張圖都是個位數。
+OCC_SWITCH_THRESHOLD = 100
+
 NOISE = ("無", "沒有", "暫無", "暫時沒有", "沒特定", "沒有特定", "目前暫無",
          "see you", "謝謝", "n/a", "na", "-")
 
@@ -95,6 +99,13 @@ def main():
         total = sum(c.values())
         return [{"value": k, "count": v, "pct": round(v / total * 100, 1)}
                 for k, v in c.most_common()], total
+
+    # 職業分類的口徑在 2026.8 換過（舊：受訪者自述；新：以組織別為主軸），
+    # 兩者收斂成同一組 13 類，但同一個人可能落在不同類。累積圖因此是混合口徑，
+    # 且混合比例每個月都在變——網站要說明這件事，數字由這裡算出、不寫死。
+    occ_new = sum(1 for r in rows
+                  if r["occupation_canon"].strip()
+                  and (r["occupation_org"].strip() or r["occupation_role"].strip()))
 
     # 哪些場次有問管道題（用來說明管道圖的分母）。
     # 依 events.csv 的 fields_present（取自問卷表頭）判定，不用「有沒有人填」反推——
@@ -219,6 +230,12 @@ def main():
         "channel_n": chan_total,
         "channel_events": len(asked_channel),
         "channel_missing_events": missing_channel,
+        # 職業分類的口徑變動（見 README「職業題有新舊兩種格式」）
+        # 分母用職業圖自己的分母（occupation_canon 非空者），不要用總回覆數——
+        # 有回覆的職業無法分類時，兩者就會不相等，說明文字會跟圖對不起來
+        "occupation_n": occ_total,
+        "occupation_new_format_n": occ_new,
+        "occupation_new_format_pct": round(occ_new / occ_total * 100, 1) if occ_total else 0,
         "top_topics": [d["category"] for d in demand_rows if d["dimension"] == "主題"][:5],
     }
     with open(os.path.join(ANALYSIS, "summary.json"), "w", encoding="utf-8") as f:
@@ -227,6 +244,14 @@ def main():
     print(f"整體 NPS={overall_nps} (n={len(all_scores)}) | 許願有效={len(tagged)}"
           f"（人工校訂 {n_curated} / 自動 {n_auto}）")
     print(f"主題需求 Top: {summary['top_topics']}")
+    # 門檻寫在 README 沒人會記得，所以讓 pipeline 自己叫
+    if occ_new >= OCC_SWITCH_THRESHOLD:
+        print(f"  ⚠ 新格式職業資料已達 {occ_new} 筆（門檻 {OCC_SWITCH_THRESHOLD}），"
+              f"可以把職業圖切成只用新格式了——做法見 README「職業題有新舊兩種格式」")
+    else:
+        # 分母用 occ_total（職業圖自己的分母），跟網站文案同一把尺，否則兩邊會報不同的數
+        print(f"職業口徑：新格式 {occ_new} 筆／共 {occ_total} 筆"
+              f"（距切換門檻 {OCC_SWITCH_THRESHOLD} 還差 {OCC_SWITCH_THRESHOLD - occ_new} 筆）")
     if help_rows:
         print("單場成效自評（不進網站）:")
         for h in help_rows:
