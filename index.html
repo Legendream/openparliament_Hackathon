@@ -226,6 +226,7 @@
           </div>
           <div class="card">
             <h3 class="card__title">怎麼得知國會松</h3>
+            <p class="card__hint" id="channel-note"></p>
             <div class="chart-box"><canvas id="chart-channel"></canvas></div>
           </div>
           <div class="card card--wide">
@@ -346,22 +347,28 @@
   <script>
 window.SITE_DATA = {
   "summary": {
-    "events": 16,
-    "total_responses": 235,
-    "overall_nps": 65.5,
-    "promoters": 165,
-    "passives": 59,
+    "events": 17,
+    "total_responses": 245,
+    "overall_nps": 65.7,
+    "promoters": 172,
+    "passives": 62,
     "detractors": 11,
-    "nps_sample": 235,
-    "first_time_pct": 66.8,
-    "returning_pct": 33.2,
-    "wish_responses": 31,
+    "nps_sample": 245,
+    "first_time_pct": 66.1,
+    "returning_pct": 33.9,
+    "wish_responses": 33,
+    "channel_n": 229,
+    "channel_events": 15,
+    "channel_missing_events": [
+      "2025.7",
+      "2026.8"
+    ],
     "top_topics": [
       "立委與助理實務",
       "議事與立法流程",
       "AI與資料工具",
-      "資料解讀與媒體識讀",
-      "預算決算"
+      "預算決算",
+      "資料解讀與媒體識讀"
     ]
   },
   "nps_by_event": [
@@ -508,73 +515,82 @@ window.SITE_DATA = {
       "promoters": 16,
       "passives": 1,
       "detractors": 0
+    },
+    {
+      "event": "2026.8",
+      "theme": "選前抱佛腳了嗎？－－那些選議員之前必須知道的大小事",
+      "n": 10,
+      "nps": 70.0,
+      "promoters": 7,
+      "passives": 3,
+      "detractors": 0
     }
   ],
   "occupation": [
     {
       "value": "公民團體/倡議",
-      "count": 50,
-      "pct": 21.3
+      "count": 53,
+      "pct": 21.6
     },
     {
       "value": "資訊科技/開發",
-      "count": 49,
-      "pct": 20.9
+      "count": 51,
+      "pct": 20.8
     },
     {
       "value": "學生",
       "count": 33,
-      "pct": 14.0
+      "pct": 13.5
     },
     {
       "value": "教育/教師",
-      "count": 19,
-      "pct": 8.1
+      "count": 20,
+      "pct": 8.2
     },
     {
       "value": "一般民眾/上班族",
       "count": 16,
-      "pct": 6.8
+      "pct": 6.5
     },
     {
       "value": "媒體",
       "count": 15,
-      "pct": 6.4
+      "pct": 6.1
     },
     {
       "value": "政治工作",
-      "count": 12,
-      "pct": 5.1
+      "count": 13,
+      "pct": 5.3
     },
     {
       "value": "公務人員",
-      "count": 10,
-      "pct": 4.3
+      "count": 11,
+      "pct": 4.5
     },
     {
       "value": "自由工作者",
-      "count": 8,
-      "pct": 3.4
+      "count": 9,
+      "pct": 3.7
     },
     {
       "value": "學術研究",
       "count": 7,
-      "pct": 3.0
+      "pct": 2.9
+    },
+    {
+      "value": "其他/未提供",
+      "count": 6,
+      "pct": 2.4
     },
     {
       "value": "醫療",
       "count": 6,
-      "pct": 2.6
-    },
-    {
-      "value": "其他/未提供",
-      "count": 5,
-      "pct": 2.1
+      "pct": 2.4
     },
     {
       "value": "設計/UX",
       "count": 5,
-      "pct": 2.1
+      "pct": 2.0
     }
   ],
   "channel": [
@@ -607,13 +623,13 @@ window.SITE_DATA = {
   "first_time": [
     {
       "value": "首次參加",
-      "count": 151,
-      "pct": 66.8
+      "count": 156,
+      "pct": 66.1
     },
     {
       "value": "回流參加",
-      "count": 75,
-      "pct": 33.2
+      "count": 80,
+      "pct": 33.9
     }
   ],
   "wish": {
@@ -626,8 +642,8 @@ window.SITE_DATA = {
       },
       {
         "category": "議事與立法流程",
-        "demand": 7,
-        "held": 3,
+        "demand": 8,
+        "held": 4,
         "desc": "一個法案從提案到三讀怎麼走：委員會審查、黨團協商、議事規範"
       },
       {
@@ -637,16 +653,16 @@ window.SITE_DATA = {
         "desc": "用 AI 和資料工具整理國會資料：從大量質詢稿萃取重點、避免 AI 幻覺"
       },
       {
-        "category": "資料解讀與媒體識讀",
-        "demand": 4,
-        "held": 3,
-        "desc": "怎麼判讀媒體上的國會新聞：分辨事實與政治攻防、追蹤質詢後續"
-      },
-      {
         "category": "預算決算",
-        "demand": 4,
+        "demand": 5,
         "held": 7,
         "desc": "政府預算怎麼編、怎麼看：預算編列、獎補助、決算資料"
+      },
+      {
+        "category": "資料解讀與媒體識讀",
+        "demand": 4,
+        "held": 4,
+        "desc": "怎麼判讀媒體上的國會新聞：分辨事實與政治攻防、追蹤質詢後續"
       },
       {
         "category": "特定政策議題",
@@ -695,7 +711,7 @@ window.SITE_DATA = {
         "desc": "例如手機版查詢、給一般公民的國會資訊平台總覽"
       }
     ],
-    "valid_n": 31
+    "valid_n": 33
   },
   "events": [
     {
@@ -857,6 +873,16 @@ window.SITE_DATA = {
       "video": "",
       "event_url": "https://g0vcongressthon.oen.tw/events/3GawOcAZ9kufoe4up7JUHelGuL1",
       "nps": 94.1
+    },
+    {
+      "event": "2026.8",
+      "date": "2026-08",
+      "term": "第貳拾肆次",
+      "theme": "選前抱佛腳了嗎？－－那些選議員之前必須知道的大小事",
+      "hackmd": "https://g0v.hackmd.io/@SA7CD7VRSp6Fcqw9CaElcQ/SJ93ZW5XR/%2FRFCkoD_zQnaCBcN6PUNHSg",
+      "video": "",
+      "event_url": "https://g0vcongressthon.oen.tw/events/3I7q6ZGEMNz6BlPl1wG1UBByOp6",
+      "nps": 70.0
     }
   ],
   "links": {
@@ -935,6 +961,17 @@ window.SITE_DATA = {
       } } } },
     },
   });
+
+  // 管道題不是每場都問，分母小於總回覆數——把缺哪幾場講清楚，數字由資料算出
+  var chNote = document.getElementById("channel-note");
+  if (chNote) {
+    var miss = D.summary.channel_missing_events || [];
+    chNote.textContent = miss.length
+      ? "有 " + miss.length + " 場的會後問卷沒有這一題（" + miss.join("、") +
+        "），這張圖只計入有問的 " + D.summary.channel_events + " 場、" +
+        D.summary.channel_n + " 人。"
+      : "計入全部 " + D.summary.channel_events + " 場、" + D.summary.channel_n + " 人。";
+  }
 
   new Chart(document.getElementById("chart-channel"), {
     type: "doughnut",

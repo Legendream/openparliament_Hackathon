@@ -41,11 +41,16 @@ FIELD_KEYWORDS = {
     "join_reason": ["為什麼想參加"],
     "wish_topic": ["徵集各式", "好奇、想瞭解的主題", "好奇"],
     "impressed": ["印象最深刻", "印象深刻"],
+    # 2026.8 起新增的兩題 5 分制成效自評。題幹綁該場主題，跨場不可比，
+    # 因此只入庫並產出單場數字，刻意不併入任何跨場圖表。
+    "help_operation": ["瞭解議會運作"],
+    "help_data": ["看懂議會資料"],
     "timestamp": ["時間戳記"],
 }
 STD_FIELDS = ["event", "timestamp", "nps", "is_first_time",
               "occupation", "occupation_org", "occupation_role",
-              "channel", "join_reason", "wish_topic", "impressed"]
+              "channel", "join_reason", "wish_topic", "impressed",
+              "help_operation", "help_data"]
 CANON_FIELDS = ["occupation", "channel", "is_first_time"]
 
 
@@ -228,6 +233,9 @@ def main():
             nps_val = ""
         events.append({"event": ws.title, "n_responses": len(rows) - 1,
                        "n_nps": n, "nps": nps_val,
+                       # 這場「有問哪些題」，取自表頭而非作答——用作答反推的話，
+                       # 一場有問但全體跳答，會被誤判成「這場沒問這題」
+                       "fields_present": ";".join(sorted(found)),
                        "topic_questions": " | ".join(extra_headers)})
 
     out_fields = STD_FIELDS + [f + "_canon" for f in CANON_FIELDS]
@@ -239,7 +247,8 @@ def main():
 
     with open(os.path.join(OUT_DIR, "events.csv"), "w",
               newline="", encoding="utf-8-sig") as f:
-        w = csv.DictWriter(f, fieldnames=["event", "n_responses", "n_nps", "nps", "topic_questions"])
+        w = csv.DictWriter(f, fieldnames=["event", "n_responses", "n_nps", "nps",
+                                  "fields_present", "topic_questions"])
         w.writeheader()
         w.writerows(events)
 

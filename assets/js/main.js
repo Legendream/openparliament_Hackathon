@@ -66,6 +66,17 @@
     },
   });
 
+  // 管道題不是每場都問，分母小於總回覆數——把缺哪幾場講清楚，數字由資料算出
+  var chNote = document.getElementById("channel-note");
+  if (chNote) {
+    var miss = D.summary.channel_missing_events || [];
+    chNote.textContent = miss.length
+      ? "有 " + miss.length + " 場的會後問卷沒有這一題（" + miss.join("、") +
+        "），這張圖只計入有問的 " + D.summary.channel_events + " 場、" +
+        D.summary.channel_n + " 人。"
+      : "計入全部 " + D.summary.channel_events + " 場、" + D.summary.channel_n + " 人。";
+  }
+
   new Chart(document.getElementById("chart-channel"), {
     type: "doughnut",
     data: {
