@@ -12,6 +12,8 @@
 """
 import csv
 import os
+import unicodedata
+
 import openpyxl
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,8 +26,8 @@ os.makedirs(ANALYSIS_DIR, exist_ok=True)
 
 # 標準欄位 -> 比對表頭的關鍵字（命中即對應）
 # 職業有新舊兩種問法：
-#   舊（～2026.8）：單題「請問你的職業背景是？」   -> occupation
-#   新（2026.9～）：兩題「你在哪一類組織工作或就學？」-> occupation_org
+#   舊（～2026.7）：單題「請問你的職業背景是？」   -> occupation
+#   新（2026.8～）：兩題「你在哪一類組織工作或就學？」-> occupation_org
 #                        「你的工作內容最接近哪一類？」-> occupation_role
 # 三個關鍵字彼此互斥，同一份表頭不會互相搶欄位。
 FIELD_KEYWORDS = {
@@ -58,8 +60,14 @@ def load_synonyms():
 
 
 def squash(s):
-    """比對用：去掉所有空白，讓選項文字的空格差異不影響對照。"""
-    return "".join((s or "").split())
+    """比對用：全半形正規化後去掉所有空白。
+
+    表單選項的標點可能是全形（「政府機關／公營事業」），而對照表寫成半形
+    （「政府機關 / 公營事業」），兩者看起來一樣但碼位不同，會整批對不到。
+    NFKC 會把全形斜線、括號等收斂成半形，兩側都套用即可互相對上；
+    中文標點（、。）不受影響。
+    """
+    return "".join(unicodedata.normalize("NFKC", s or "").split())
 
 
 def load_crosswalk():
@@ -78,10 +86,33 @@ def load_crosswalk():
         role = r["role"].strip()
         okey = "*" if org == "*" else squash(org)
         rkey = "*" if role == "*" else squash(role)
+        if (okey, rkey) in rules:
+            # NFKC 之後全形／半形寫法會收斂成同一個鍵，兩列看起來不同卻會互相
+            # 覆蓋。這種覆蓋一定要吵出來，否則分類結果會取決於檔案的列順序。
+            print(f"  ⚠ occupation_crosswalk.csv 重複規則："
+                  f"「{org} × {role}」正規化後與前面某列相同，後者覆蓋前者")
         rules[(okey, rkey)] = r["canonical"].strip()
         if rkey != "*":
             known_roles.add(rkey)
     return rules, known_roles
+
+
+def syn_lookup(syn, field, value):
+    """查同義詞表：先精確比對，再用 squash 後的寬鬆比對。
+
+    寬鬆比對是為了跟 crosswalk 用同一把尺——否則自由填答補了半形寫法、
+    受訪者填的是全形，這裡查不到，該筆就會莫名其妙落回「其他/未提供」。
+    只用在新格式的職業兩題，不影響舊格式既有的精確比對行為。
+    """
+    v = value.strip()
+    if (field, v) in syn:
+        return syn[(field, v)]
+    key = squash(v)
+    if key:
+        for (f, raw), canon in syn.items():
+            if f == field and squash(raw) == key:
+                return canon
+    return value
 
 
 def resolve_occupation(org, role, rules, known_roles, syn):
@@ -95,8 +126,8 @@ def resolve_occupation(org, role, rules, known_roles, syn):
     notes = []
     if not org.strip() and not role.strip():
         return "", notes          # 兩題皆空＝舊格式或未填，不是未對應
-    org = syn.get(("occupation_org", org.strip()), org)
-    role = syn.get(("occupation_role", role.strip()), role)
+    org = syn_lookup(syn, "occupation_org", org)
+    role = syn_lookup(syn, "occupation_role", role)
     o, r = squash(org), squash(role)
 
     if r and r not in known_roles:
